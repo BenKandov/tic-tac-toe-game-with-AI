@@ -1,0 +1,35 @@
+.square{
+	border-width: 3px;
+	border-style: solid;
+	width: 170px;
+	height:170px;
+	border-color: black;
+	font-size: 96px;
+	text-align: center;
+}
+#gameBoard{
+	position:absolute;
+	bottom:10%;
+	left:33%;
+}
+body{
+	background-color: beige;
+}
+#gameStatus{
+	position:absolute;
+	text-align: center;
+	top:0%;
+	font-size: 32px;
+}
+#startOver{
+	position: absolute;
+	text-align: center;
+	top:20%;
+	font-size: 16px;
+}
+#gameMode{
+	position: absolute;
+	text-align: center;
+	top:30%;
+	font-size: 16px;
+}
