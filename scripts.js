@@ -9,13 +9,13 @@ var currentTurn = 0;
 $(".square").click(function(){
 if(!gameOver && playerTurn){
 	var square = event.target;
-
 	if($.trim($(square).html())==''){
-
 		$(square).text(currentShape);
-
 		checkWinningConditions();
-
+		if(checkForDraw()){
+			gameOver=true;
+			$("#gameStatus").text("The game has ended in a draw.");
+		}
 		if(currentShape.valueOf() == "X"){
 			currentShape = "O";
 		}
@@ -25,7 +25,6 @@ if(!gameOver && playerTurn){
 		if(aiMode){
 			playerTurn = false;
 			computerMove();
-
 		}
 	}
 }
@@ -45,7 +44,6 @@ $("#startOver").click(function(){
 	}
 });
 
-
 //Switch between Game Modes
 $("#gameMode").click(function(){
 	currentTurn=0;
@@ -63,8 +61,16 @@ $("#gameMode").click(function(){
 
 });
 
-
-
+function checkForDraw(){
+	for(i=1;i<4;i++){
+				for(j=1;j<4;j++){					
+					if( $.trim($("#"+i+"-"+j).html()) == "" ){						
+						return false;
+				}	
+			}
+		}
+	return true;	
+}
 
 function checkWinningConditions(){
 		for(i = 1; i < 4; i++){
@@ -113,7 +119,6 @@ function checkWinningConditions(){
 		}
 }
 
-
 function checkColumn(column){
 	if($.trim($("#1-"+column).html())!=''){
 		if( ($("#1-"+column).html().valueOf() ==  $("#2-"+column).html().valueOf()) && ($("#1-"+column).html().valueOf() ==  $("#3-"+column).html().valueOf()) ){
@@ -151,11 +156,13 @@ function ai(){
 	$(".square").text('');
 	gameOver=false;
 	$("#gameStatus").text('');
-	computerMove();
-	//playerMove();
+	//computerMove();
+	playerMove();
 }
 var squareToMove;
 var otherShape;
+//this variable holds the square value the ai tried to make an opening diagonal with, and will use to make a double
+var diagonalDoubleStart = null;
 function computerMove(){
 
 	playerTurn = false;
@@ -173,23 +180,66 @@ function computerMove(){
 	}
 	$("#gameStatus").text("AI thinking...");
 	setTimeout(function(){
-		if($.trim($("#2-2").html())==''){
+		if(completeColumn(currentShape)!=null || completeRow(currentShape)!=null || completeDiagonal(currentShape)!=null){
+			if(completeColumn(currentShape)!=null){
+				squareToMove = completeColumn(currentShape);
+				$(squareToMove).text(currentShape);
+			}else if(completeRow(currentShape)!=null){
+				squareToMove = completeRow(currentShape);
+				$(squareToMove).text(currentShape);
+			}
+			else if(completeDiagonal(currentShape)!=null){
+				squareToMove = completeDiagonal(currentShape);
+				$(squareToMove).text(currentShape);
+			}
+		}
+		else if(completeColumn(otherShape)!=null || completeRow(otherShape)!=null || completeDiagonal(otherShape)!=null){
+			if(completeColumn(otherShape)!=null){
+				squareToMove = completeColumn(otherShape);
+				$(squareToMove).text(currentShape);
+			}else if(completeRow(otherShape)!=null){
+				squareToMove = completeRow(otherShape);
+				$(squareToMove).text(currentShape);
+			}
+			else if(completeDiagonal(otherShape)!=null){
+				squareToMove = completeDiagonal(otherShape);
+				$(squareToMove).text(currentShape);
+			}
+		}
+		else if($.trim($("#2-2").html())==''){
 			$("#2-2").text(currentShape);
 		}
 		else if(currentTurn==1 && $.trim($("#2-2").html()) == currentShape){
-			
 			squareToMove = pathToDouble(otherShape);
 			if(squareToMove!=null){
 				$(squareToMove).text(currentShape);
-			}
-			
+			}else{
+				squareToMove = makeRandom();
+				$(squareToMove).text(currentShape);
+			}		
 		}
-		else{
-			squareToMove = completeTriple(otherShape);
+		else if(currentTurn==2){
+			squareToMove = completeDiagonal(otherShape);
 			if(squareToMove!=null){
+				$(squareToMove).text(currentShape);
+			}else if(diagonalDoubleStart!=null){
+				squareToMove = makeDouble();
+				if(squareToMove!=null){
+					$(squareToMove).text(currentShape);
+				}else{
+					squareToMove = makeRandom();
+					$(squareToMove).text(currentShape);
+				}
+			}else{
+				squareToMove = makeRandom();
 				$(squareToMove).text(currentShape);
 			}
 		}
+		else{
+			squareToMove = makeRandom();
+			$(squareToMove).text(currentShape);
+			
+		}		
 
 
 		if(currentShape.valueOf() == "X"){
@@ -198,7 +248,10 @@ function computerMove(){
 		else{
 			currentShape = "X";
 		}
-
+		if(checkForDraw()){
+			gameOver=true;
+			$("#gameStatus").text("The game has ended in a draw.");
+		}
 		checkWinningConditions();
 		if(gameOver){
 			return;
@@ -210,13 +263,79 @@ function computerMove(){
 	},2000);
 
 }
+function makeRandom(){
+	
+	for(i=1;i<4;i++){
+				for(j=1;j<4;j++){					
+					if( $.trim($("#"+i+"-"+j).html()) == "" ){						
+						var x = "#"+i+"-"+j;
+						return x;
+				}	
+			}
+		}
+	return null;	
+}
+
 
 function makeDouble(){
+	if(diagonalDoubleStart.valueOf() == "#1-1"){
+		return "#1-2";
+	}else if(diagonalDoubleStart.valueOf()=="#1-3"){
+		return "#2-3";
+	}else if(diagonalDoubleStart.valueOf()=="#3-1"){
+		return "#2-1";
+	}else if(diagonalDoubleStart.valueOf()=="#3-3"){
+		return "#3-2";
+	}
+	else{
+		return null;
+	}
+}
+function completeColumn(shape){
+	for(i =1; i<4;i++){
+		if($("#1-"+i).html().valueOf()==shape){
+			if( ($("#1-"+i).html().valueOf() ==  $("#2-"+i).html().valueOf()) && $.trim($("#3-"+i).html()) == "" ){
+					return "#3-"+i;
+			}
+		}
+		else if($("#2-"+i).html().valueOf()==shape){
+			if( ($("#2-"+i).html().valueOf() ==  $("#3-"+i).html().valueOf()) && $.trim($("#1-"+i).html()) == "" ){
+					return "#1-"+i;
+			}
+		}
+		else if($("#1-"+i).html().valueOf()==shape){
+			if( ($("#1-"+i).html().valueOf() ==  $("#3-"+i).html().valueOf()) && $.trim($("#2-"+i).html()) == "" ){
+					return "#2-"+i;
+			}
+		}
+	}
+	return null;
+}
+
+function completeRow(shape){
+	for(i=1;i<4;i++){
+		if($("#"+i+"-1").html().valueOf()==shape){
+			if( ($("#"+i+"-1").html().valueOf() ==  $("#"+i+"-2").html().valueOf()) && $.trim($("#"+i+"-3").html()) == "" ){
+					return "#"+i+"-3";
+			}
+		}
+		else if($("#"+i+"-2").html().valueOf()==shape){
+			if( ($("#"+i+"-2").html().valueOf() ==  $("#"+i+"-3").html().valueOf()) && $.trim($("#"+i+"-1").html()) == "" ){
+					return "#"+i+"-1";
+			}
+		}
+		else if($("#"+i+"-3").html().valueOf()==shape){
+			if( ($("#"+i+"-1").html().valueOf() ==  $("#"+i+"-3").html().valueOf()) && $.trim($("#"+i+"-2").html()) == "" ){
+					return "#"+i+"-2";
+			}
+		}
+	}
+	return null;
 
 }
-function completeTriple(otherShape){
-	//Diagonals
-	if($.trim($("#2-2").html())==currentShape){
+function completeDiagonal(shape){
+	
+	if($.trim($("#2-2").html())==shape){
 
 		if( ($("#1-1").html().valueOf() ==  $("#2-2").html().valueOf()) && ($.trim($("#3-3").html()) == "")){
 			return "#3-3";
@@ -227,7 +346,7 @@ function completeTriple(otherShape){
 		if(($("#3-1").html().valueOf() ==  $("#2-2").html().valueOf()) && ( $.trim($("#1-3").html())== "")){
 			return "#1-3";
 		} 	
-		if(($("#3-3").html().valueOf() ==  $("#2-2").html().valueOf()) && ($.trim(("#1-1").html()) == "")){
+		if(($("#3-3").html().valueOf() ==  $("#2-2").html().valueOf()) && ($.trim($("#1-1").html()) == "")){
 			return "#1-1";
 		}
 	}
@@ -236,12 +355,16 @@ function completeTriple(otherShape){
 }
 function pathToDouble(otherShape){
 	if( $("#1-2").html().valueOf() == otherShape){
-		return "#1-1";
-	}else if($("#2-1").html().valueOf() == otherShape){
-		return "#1-1"
-	}else if($("#2-3").html().valueOf() == otherShape){
+		diagonalDoubleStart = "#1-3";
 		return "#1-3";
+	}else if($("#2-1").html().valueOf() == otherShape){
+		diagonalDoubleStart = "#1-1";
+		return "#1-1";
+	}else if($("#2-3").html().valueOf() == otherShape){
+		diagonalDoubleStart = "#3-3";
+		return "#3-3";
 	}else if($("#3-2").html().valueOf() == otherShape){
+		diagonalDoubleStart = "#3-1";
 		return ("#3-1");
 	}else{
 		return null;
@@ -249,15 +372,14 @@ function pathToDouble(otherShape){
 }
 
 function playerMove(){
-		currentTurn++;
+	currentTurn++;
+	if(checkForDraw()){
+			gameOver=true;
+			$("#gameStatus").text("The game has ended in a draw.");
+		}
 	currentPlayer = 0;
 	$("#gameStatus").text("Player to move");
 	playerTurn = true;
 
 }
-
-
-
-
-
 
