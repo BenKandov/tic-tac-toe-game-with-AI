@@ -156,8 +156,13 @@ function ai(){
 	$(".square").text('');
 	gameOver=false;
 	$("#gameStatus").text('');
-	//computerMove();
-	playerMove();
+	if(Math.random() >= 0.5){
+		computerMove();
+	}else{
+		playerMove();
+	}
+	
+	
 }
 var squareToMove;
 var otherShape;
@@ -298,12 +303,13 @@ function completeColumn(shape){
 					return "#3-"+i;
 			}
 		}
-		else if($("#2-"+i).html().valueOf()==shape){
+		if($("#2-"+i).html().valueOf()==shape){
 			if( ($("#2-"+i).html().valueOf() ==  $("#3-"+i).html().valueOf()) && $.trim($("#1-"+i).html()) == "" ){
 					return "#1-"+i;
 			}
 		}
-		else if($("#1-"+i).html().valueOf()==shape){
+		if($("#1-"+i).html().valueOf()==shape){
+			
 			if( ($("#1-"+i).html().valueOf() ==  $("#3-"+i).html().valueOf()) && $.trim($("#2-"+i).html()) == "" ){
 					return "#2-"+i;
 			}
@@ -319,12 +325,12 @@ function completeRow(shape){
 					return "#"+i+"-3";
 			}
 		}
-		else if($("#"+i+"-2").html().valueOf()==shape){
+		if($("#"+i+"-2").html().valueOf()==shape){
 			if( ($("#"+i+"-2").html().valueOf() ==  $("#"+i+"-3").html().valueOf()) && $.trim($("#"+i+"-1").html()) == "" ){
 					return "#"+i+"-1";
 			}
 		}
-		else if($("#"+i+"-3").html().valueOf()==shape){
+		if($("#"+i+"-3").html().valueOf()==shape){
 			if( ($("#"+i+"-1").html().valueOf() ==  $("#"+i+"-3").html().valueOf()) && $.trim($("#"+i+"-2").html()) == "" ){
 					return "#"+i+"-2";
 			}
@@ -373,10 +379,7 @@ function pathToDouble(otherShape){
 
 function playerMove(){
 	currentTurn++;
-	if(checkForDraw()){
-			gameOver=true;
-			$("#gameStatus").text("The game has ended in a draw.");
-		}
+
 	currentPlayer = 0;
 	$("#gameStatus").text("Player to move");
 	playerTurn = true;
